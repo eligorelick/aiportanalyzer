@@ -1,0 +1,7 @@
+Ticker,Shares,Cost_Basis,Purchase_Date,Asset_Type
+NVDA,50,450.25,2024-01-15,Stock
+AMD,100,125.50,2024-03-20,Stock
+AAPL,30,175.00,2023-11-10,Stock
+MSFT,25,380.00,2024-02-05,Stock
+GOOGL,15,140.00,2024-06-12,Stock
+TSLA,20,250.00,2024-07-08,Stock
