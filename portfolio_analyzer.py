@@ -61,6 +61,18 @@ class PortfolioAnalyzer:
             print("Error: Ticker symbol cannot be empty")
             return False
 
+        # Validate numeric inputs
+        try:
+            shares = float(shares)
+            avg_cost = float(avg_cost)
+        except (ValueError, TypeError):
+            print("Error: Shares and cost must be numeric values")
+            return False
+
+        # Warn about negative values but allow them
+        if shares < 0 or avg_cost < 0:
+            print(f"Warning: Negative values detected (shares: {shares}, cost: {avg_cost})")
+
         if ticker in self.tickers:
             print(f"Ticker {ticker} already exists. Updating data...")
 
@@ -108,23 +120,38 @@ class PortfolioAnalyzer:
 
         try:
             added = 0
+            skipped = 0
+            row_num = 0
+
             with open(csv_file, 'r') as f:
                 reader = csv.DictReader(f)
 
                 # Handle different CSV formats
                 for row in reader:
+                    row_num += 1
                     ticker = row.get('ticker', '').strip()
 
                     if not ticker:
+                        skipped += 1
                         continue
 
-                    shares = float(row.get('shares', 0) or 0)
-                    avg_cost = float(row.get('avg_cost', 0) or 0)
+                    try:
+                        shares = float(row.get('shares', 0) or 0)
+                        avg_cost = float(row.get('avg_cost', 0) or 0)
 
-                    if self.add_ticker_manual(ticker, shares, avg_cost):
-                        added += 1
+                        if self.add_ticker_manual(ticker, shares, avg_cost):
+                            added += 1
+                        else:
+                            skipped += 1
+
+                    except (ValueError, TypeError) as e:
+                        print(f"Warning: Skipping row {row_num} - invalid numeric data: {e}")
+                        skipped += 1
+                        continue
 
             print(f"\nImported {added} tickers from {csv_file}")
+            if skipped > 0:
+                print(f"Skipped {skipped} rows due to errors or empty data")
             return True
 
         except Exception as e:
@@ -178,6 +205,20 @@ def main():
     """Main interactive menu"""
     analyzer = PortfolioAnalyzer()
 
+    try:
+        run_menu(analyzer)
+    except KeyboardInterrupt:
+        print("\n\nSaving data before exit...")
+        analyzer.save_data()
+        print("Goodbye!")
+    except Exception as e:
+        print(f"\nUnexpected error: {e}")
+        print("Attempting to save data...")
+        analyzer.save_data()
+
+
+def run_menu(analyzer):
+    """Run the interactive menu loop"""
     while True:
         print("\n" + "="*60)
         print("AI Portfolio Analyzer")
@@ -198,24 +239,38 @@ def main():
             shares_input = input("Enter number of shares (optional, press Enter to skip): ").strip()
             cost_input = input("Enter average cost per share (optional, press Enter to skip): ").strip()
 
-            shares = float(shares_input) if shares_input else 0
-            avg_cost = float(cost_input) if cost_input else 0
+            try:
+                shares = float(shares_input) if shares_input else 0
+                avg_cost = float(cost_input) if cost_input else 0
 
-            analyzer.add_ticker_manual(ticker, shares, avg_cost)
-            analyzer.save_data()
+                analyzer.add_ticker_manual(ticker, shares, avg_cost)
+                analyzer.save_data()
+            except ValueError:
+                print("Error: Please enter valid numeric values for shares and cost")
+                continue
 
         elif choice == '2':
             print("Enter ticker symbols separated by commas or spaces:")
             tickers_input = input("> ").strip()
 
+            if not tickers_input:
+                print("Error: No tickers entered")
+                continue
+
             # Split by comma or space
             tickers = [t.strip() for t in tickers_input.replace(',', ' ').split() if t.strip()]
 
-            analyzer.add_multiple_tickers_manual(tickers)
-            analyzer.save_data()
+            if tickers:
+                analyzer.add_multiple_tickers_manual(tickers)
+                analyzer.save_data()
+            else:
+                print("Error: No valid tickers found")
 
         elif choice == '3':
             csv_file = input("Enter CSV file path: ").strip()
+            if not csv_file:
+                print("Error: No file path provided")
+                continue
             analyzer.import_from_csv(csv_file)
             analyzer.save_data()
 
