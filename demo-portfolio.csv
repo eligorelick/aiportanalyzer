@@ -1,0 +1,15 @@
+Ticker,Shares,Cost_Basis,Asset_Type
+AMZN,18,91.13,Stock
+SPY,5.9942,303.02,ETF
+ASML,8,518.64,Stock
+AMD,17,151.53,Stock
+GOOG,4,162.73,Stock
+GOOGL,31,162.89,Stock
+CRSP,31,43.16,Stock
+META,3,607.05,Stock
+VUG,7,411.14,ETF
+TSM,20,247.73,Stock
+IBM,19,258.33,Stock
+MSFT,13,468.46,Stock
+TGT,45,87.54,Stock
+SWVXX,12200,1.0000,Money Market
